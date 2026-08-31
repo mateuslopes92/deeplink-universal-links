@@ -1,15 +1,9 @@
 import Link from "next/link";
-
-const movies = [
-  { id: "1", title: "The Matrix", year: 1999, poster: "https://picsum.photos/seed/matrix/300/450" },
-  { id: "2", title: "Inception", year: 2010, poster: "https://picsum.photos/seed/inception/300/450" },
-  { id: "3", title: "Interstellar", year: 2014, poster: "https://picsum.photos/seed/interstellar/300/450" },
-  { id: "4", title: "The Dark Knight", year: 2008, poster: "https://picsum.photos/seed/darkknight/300/450" },
-  { id: "5", title: "Pulp Fiction", year: 1994, poster: "https://picsum.photos/seed/pulpfiction/300/450" },
-  { id: "6", title: "Fight Club", year: 1999, poster: "https://picsum.photos/seed/fightclub/300/450" },
-];
+import { getPopularMovies } from "@/lib/api";
 
 export default function Home() {
+  const movies = getPopularMovies();
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <header className="p-6 bg-gray-800">
@@ -27,13 +21,15 @@ export default function Home() {
             >
               <div className="aspect-[2/3] bg-gray-700 rounded-lg overflow-hidden">
                 <img
-                  src={movie.poster}
+                  src={movie.poster_path}
                   alt={movie.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
               </div>
               <h3 className="mt-2 font-medium">{movie.title}</h3>
-              <p className="text-gray-400 text-sm">{movie.year}</p>
+              <p className="text-gray-400 text-sm">
+                {new Date(movie.release_date).getFullYear()}
+              </p>
             </Link>
           ))}
         </div>

@@ -6,17 +6,26 @@ A study project exploring **Deep Links** and **Universal Links** using a movie a
 
 ```
 deeplink-universal-links/
-├── web-moviebox/          # Next.js web app
-│   └── src/app/
-│       ├── page.tsx                  # Home - movie grid
-│       └── movie/[id]/page.tsx       # Movie detail with deep link button
+├── web-moviebox/              # Next.js web app
+│   └── src/
+│       ├── app/
+│       │   ├── page.tsx                  # Home - movie grid
+│       │   └── movie/[id]/page.tsx       # Movie detail with deep link button
+│       └── lib/api/
+│           ├── config.ts                 # Image URL helpers
+│           ├── movies.ts                 # Static movie data
+│           └── index.ts                  # Public exports
 │
-└── mobile-moviebox/       # React Native bare app
-    ├── App.tsx                        # Navigation + linking config
-    ├── ios/MobileApp/Info.plist       # iOS URL scheme registration
-    └── src/screens/
-        ├── HomeScreen.tsx             # Movie list
-        └── MovieDetailScreen.tsx      # Movie detail
+└── mobile-moviebox/           # React Native bare app
+    ├── App.tsx                            # Navigation + linking config
+    ├── ios/MobileApp/Info.plist           # iOS URL scheme registration
+    └── src/
+        ├── api/
+        │   ├── movies.ts                 # Static movie data
+        │   └── index.ts                  # Public exports
+        └── screens/
+            ├── HomeScreen.tsx             # Movie list
+            └── MovieDetailScreen.tsx      # Movie detail
 ```
 
 ## What Are Deep Links & Universal Links?
@@ -25,13 +34,14 @@ deeplink-universal-links/
 Custom URL schemes that open your app directly.
 
 ```
-moviebox://movie/1     → Opens MovieBox app → Movie Detail screen
-myapp://profile/john   → Opens MyApp → Profile screen
+moviebox://movie/550     → Opens MovieBox app → Movie Detail screen
+myapp://profile/john     → Opens MyApp → Profile screen
 ```
 
 **Pros:**
 - Works even if the app isn't installed (shows error)
 - Can pass complex data via URL parameters
+- No server configuration needed
 
 **Cons:**
 - Shows a confirmation dialog ("Open in App?")
@@ -42,8 +52,8 @@ myapp://profile/john   → Opens MyApp → Profile screen
 Standard HTTPS URLs that open your app when installed, otherwise open in browser.
 
 ```
-https://moviebox.app/movie/1   → Opens MovieBox app (if installed)
-https://moviebox.app/movie/1   → Opens website (if not installed)
+https://moviebox.app/movie/550   → Opens MovieBox app (if installed)
+https://moviebox.app/movie/550   → Opens website (if not installed)
 ```
 
 **Pros:**
@@ -55,6 +65,26 @@ https://moviebox.app/movie/1   → Opens website (if not installed)
 - Requires server-side configuration (`apple-app-site-association`)
 - Requires Associated Domains entitlement in the app
 
+## Movie Data
+
+The app uses static movie data with real poster images from TMDB's CDN. No API key or account required - just works.
+
+```typescript
+// mobile-moviebox/src/api/movies.ts
+
+export const movies: Movie[] = [
+  {
+    id: 550,
+    title: 'Fight Club',
+    overview: 'An insomniac office worker and a devil-may-care soap maker...',
+    poster_path: 'https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QI4S2t0POoT.jpg',
+    vote_average: 8.4,
+    // ...
+  },
+  // ...more movies
+];
+```
+
 ## Implementation
 
 ### 1. Web App (Next.js)
@@ -65,7 +95,7 @@ The movie detail page has a button that triggers the deep link:
 // web-moviebox/src/app/movie/[id]/page.tsx
 
 <a
-  href={`moviebox://movie/${id}`}
+  href={`moviebox://movie/${movie.id}`}
   className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-medium inline-block"
 >
   Open in Mobile App
@@ -75,7 +105,7 @@ The movie detail page has a button that triggers the deep link:
 For universal links, you'd use an HTTPS URL instead:
 
 ```tsx
-<a href={`https://moviebox.app/movie/${id}`}>
+<a href={`https://moviebox.app/movie/${movie.id}`}>
   Open in Mobile App
 </a>
 ```
@@ -144,7 +174,7 @@ Register the custom URL scheme in `Info.plist`:
 
 ```bash
 # Test via command line
-xcrun simctl openurl <device-udid> "moviebox://movie/1"
+xcrun simctl openurl <device-udid> "moviebox://movie/550"
 
 # List devices
 xcrun simctl list devices booted
@@ -154,7 +184,7 @@ xcrun simctl list devices booted
 
 ```bash
 # Test via command line
-adb shell am start -a android.intent.action.VIEW -d "moviebox://movie/1"
+adb shell am start -a android.intent.action.VIEW -d "moviebox://movie/550"
 ```
 
 #### From Website
@@ -164,7 +194,7 @@ Open the web app in the simulator's browser and click the "Open in Mobile App" b
 
 | Feature | Deep Link | Universal Link |
 |---------|-----------|----------------|
-| URL format | `moviebox://movie/1` | `https://moviebox.app/movie/1` |
+| URL format | `moviebox://movie/550` | `https://moviebox.app/movie/550` |
 | Opens app directly | Yes | Yes |
 | Confirmation dialog | Yes | No |
 | Works without app | Shows error | Opens website |
@@ -247,3 +277,4 @@ npx react-native run-ios
 
 - **Web:** Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Mobile:** React Native 0.87, React Navigation 7, TypeScript
+- **Images:** TMDB CDN (no API key needed)

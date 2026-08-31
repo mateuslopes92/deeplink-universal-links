@@ -3,25 +3,17 @@ import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../App';
+import { getMovieById } from '../api';
 
 type RouteProps = RouteProp<RootStackParamList, 'MovieDetail'>;
 
-const moviesData: Record<string, { title: string; year: number; poster: string; overview: string; rating: number }> = {
-  '1': { title: 'The Matrix', year: 1999, poster: 'https://picsum.photos/seed/matrix/600/900', overview: 'A computer programmer discovers that reality as he knows it is a simulation created by machines.', rating: 8.7 },
-  '2': { title: 'Inception', year: 2010, poster: 'https://picsum.photos/seed/inception/600/900', overview: 'A thief who steals corporate secrets through dream-sharing technology is given the task of planting an idea.', rating: 8.8 },
-  '3': { title: 'Interstellar', year: 2014, poster: 'https://picsum.photos/seed/interstellar/600/900', overview: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.', rating: 8.6 },
-  '4': { title: 'The Dark Knight', year: 2008, poster: 'https://picsum.photos/seed/darkknight/600/900', overview: 'Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and District Attorney Harvey Dent.', rating: 9.0 },
-  '5': { title: 'Pulp Fiction', year: 1994, poster: 'https://picsum.photos/seed/pulpfiction/600/900', overview: 'The lives of two mob hitmen, a boxer, and a pair of diner bandits intertwine in four tales of violence and redemption.', rating: 8.9 },
-  '6': { title: 'Fight Club', year: 1999, poster: 'https://picsum.photos/seed/fightclub/600/900', overview: 'An insomniac office worker and a devil-may-care soap maker form an underground fight club.', rating: 8.8 },
-};
-
 export default function MovieDetailScreen() {
   const route = useRoute<RouteProps>();
-  const movie = moviesData[route.params.id];
+  const movie = getMovieById(route.params.id);
 
   if (!movie) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>Movie not found</Text>
       </View>
     );
@@ -29,13 +21,28 @@ export default function MovieDetailScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Image source={{ uri: movie.poster }} style={styles.poster} />
+      <Image source={{ uri: movie.backdrop_path }} style={styles.backdrop} />
       <View style={styles.content}>
-        <Text style={styles.title}>{movie.title}</Text>
-        <Text style={styles.year}>{movie.year}</Text>
-        <View style={styles.ratingContainer}>
-          <Text style={styles.star}>★</Text>
-          <Text style={styles.rating}>{movie.rating}</Text>
+        <View style={styles.posterRow}>
+          <Image source={{ uri: movie.poster_path }} style={styles.poster} />
+          <View style={styles.info}>
+            <Text style={styles.title}>{movie.title}</Text>
+            <Text style={styles.year}>
+              {new Date(movie.release_date).getFullYear()} · {movie.runtime} min
+            </Text>
+            <View style={styles.genresContainer}>
+              {movie.genres.map((genre) => (
+                <View key={genre.id} style={styles.genreBadge}>
+                  <Text style={styles.genreText}>{genre.name}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.star}>★</Text>
+              <Text style={styles.rating}>{movie.vote_average.toFixed(1)}</Text>
+              <Text style={styles.votes}>({movie.vote_count.toLocaleString()})</Text>
+            </View>
+          </View>
         </View>
         <Text style={styles.overview}>{movie.overview}</Text>
       </View>
@@ -48,49 +55,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#111827',
   },
-  poster: {
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backdrop: {
     width: '100%',
-    aspectRatio: 2 / 3,
+    height: 200,
     backgroundColor: '#374151',
   },
   content: {
     padding: 16,
   },
+  posterRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: -60,
+  },
+  poster: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
+    backgroundColor: '#374151',
+  },
+  info: {
+    flex: 1,
+    paddingTop: 64,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
   },
   year: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#9CA3AF',
     marginTop: 4,
+  },
+  genresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  genreBadge: {
+    backgroundColor: '#374151',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  genreText: {
+    color: '#D1D5DB',
+    fontSize: 12,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 8,
   },
   star: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#FBBF24',
-    marginRight: 8,
+    marginRight: 6,
   },
   rating: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
+  },
+  votes: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginLeft: 6,
   },
   overview: {
     fontSize: 16,
     color: '#D1D5DB',
     lineHeight: 24,
-    marginTop: 16,
+    marginTop: 24,
   },
   errorText: {
-    color: 'white',
-    fontSize: 18,
-    textAlign: 'center',
-    marginTop: 50,
+    color: '#EF4444',
+    fontSize: 16,
   },
 });
