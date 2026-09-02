@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import { getPopularMovies } from '../api';
-import type { Movie } from '../api';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -14,8 +13,32 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>MovieBox</Text>
-      <Text style={styles.subtitle}>Discover your next favorite film</Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.header}>MovieBox</Text>
+          <Text style={styles.subtitle}>Discover your next favorite film</Text>
+        </View>
+        <View style={styles.navButtons}>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => navigation.navigate('Search')}
+          >
+            <Text style={styles.navButtonText}>🔍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => navigation.navigate('Favorites')}
+          >
+            <Text style={styles.navButtonText}>❤️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={styles.navButtonText}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <FlatList
         data={movies}
         numColumns={2}
@@ -43,18 +66,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#111827',
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: 8,
+  },
   header: {
     fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
-    padding: 16,
-    paddingBottom: 4,
   },
   subtitle: {
     fontSize: 14,
     color: '#9CA3AF',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    marginTop: 4,
+  },
+  navButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1F2937',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonText: {
+    fontSize: 18,
   },
   list: {
     padding: 8,
